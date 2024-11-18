@@ -1,11 +1,29 @@
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+
+
+const httpLink = createHttpLink({
+  uri: "http://localhost:4001/graphql", 
+});
+
+
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem("token"); 
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    },
+  };
+});
+
 
 const client = new ApolloClient({
-    uri: 'http://localhost:4001/graphql', // Vital signs service endpoint
-    cache: new InMemoryCache(),
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
 });
+
 
 export const ApolloProviderWrapper = ({ children }) => (
   <ApolloProvider client={client}>{children}</ApolloProvider>
 );
-

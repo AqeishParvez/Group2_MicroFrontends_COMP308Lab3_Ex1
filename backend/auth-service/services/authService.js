@@ -17,7 +17,8 @@ const login = async ({ email, password }) => {
   if (!isPasswordValid) throw new Error('Invalid credentials');
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  return { token, user };
+  console.log("Login Response:", { token, user: { id: user._id, username: user.username, email: user.email } });
+  return { token, user: { id: user._id, email: user.email, username: user.username } }; 
 };
 
 module.exports = { signup, login };

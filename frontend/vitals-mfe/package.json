@@ -13,6 +13,7 @@
   "dependencies": {
     "@apollo/client": "^3.11.10",
     "@originjs/vite-plugin-federation": "^1.3.6",
+    "bootstrap": "^5.3.3",
     "graphql": "^16.9.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
