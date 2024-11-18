@@ -57,9 +57,10 @@ const AuthForm = () => {
         localStorage.setItem("userId", userId); // Store userId in localStorage
         localStorage.setItem("token", data.login.token); // Store token
         console.log("User ID stored in localStorage:", userId);
+        alert("Login successful!");
   
-        setSuccessMessage("Login successful! Redirecting...");
-        window.location.href = "http://localhost:4174/"; // Redirect to Vital Signs Micro Frontend
+        // setSuccessMessage("Login successful! Redirecting...");
+        // window.location.href = "http://localhost:4174/"; // Redirect to Vital Signs Micro Frontend
       }
     } catch (err) {
       console.error("Login Error:", err.message);
