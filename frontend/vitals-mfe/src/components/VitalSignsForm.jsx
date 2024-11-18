@@ -23,8 +23,20 @@ const GET_VITAL_SIGNS = gql`
   }
 `;
 
+const UPDATE_VITAL_SIGN = gql`
+  mutation UpdateVitalSign($id: String!, $bloodPressure: String!, $heartRate: Int!, $temperature: Int!) {
+    updateVitalSign(id: $id, bloodPressure: $bloodPressure, heartRate: $heartRate, temperature: $temperature) {
+      id
+      bloodPressure
+      heartRate
+      temperature
+    }
+  }
+`;
+
 const VitalSignsForm = () => {
   const [formData, setFormData] = useState({ bloodPressure: "", heartRate: 0, temperature: 0 });
+  const [editData, setEditData] = useState(null); // Track data for editing
   const [showMessage, setShowMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [queryError, setQueryError] = useState("");
@@ -42,6 +54,10 @@ const VitalSignsForm = () => {
     onError: (err) => setErrorMessage(err.message),
   });
 
+  const [updateVitalSign] = useMutation(UPDATE_VITAL_SIGN, {
+    onError: (err) => setErrorMessage(err.message),
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage(""); // Clear previous errors
@@ -53,15 +69,34 @@ const VitalSignsForm = () => {
     }
 
     try {
-      await addVitalSign({
-        variables: { ...formData, userId }, // Include authenticated user's ID
-      });
+      if (editData) {
+        // Update existing vital sign
+        await updateVitalSign({
+          variables: { id: editData.id, ...formData },
+        });
+        setEditData(null); // Clear edit data
+      } else {
+        // Add new vital sign
+        await addVitalSign({
+          variables: { ...formData, userId },
+        });
+      }
       setShowMessage(true);
       setTimeout(() => setShowMessage(false), 3000); // Success message disappears after 3 seconds
       refetch(); // Refresh the list of vital signs
+      setFormData({ bloodPressure: "", heartRate: 0, temperature: 0 }); // Clear form
     } catch (err) {
-      console.error("Error adding vital sign:", err);
+      console.error("Error submitting vital sign:", err);
     }
+  };
+
+  const handleEdit = (vital) => {
+    setEditData(vital); // Set the data to edit
+    setFormData({
+      bloodPressure: vital.bloodPressure,
+      heartRate: vital.heartRate,
+      temperature: vital.temperature,
+    });
   };
 
   return (
@@ -69,7 +104,7 @@ const VitalSignsForm = () => {
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card shadow-lg p-4">
-            <h2 className="text-center mb-4">Add Vital Signs</h2>
+            <h2 className="text-center mb-4">{editData ? "Edit Vital Sign" : "Add Vital Signs"}</h2>
             {errorMessage && (
               <div className="alert alert-danger text-center" role="alert">
                 {errorMessage}
@@ -77,7 +112,7 @@ const VitalSignsForm = () => {
             )}
             {showMessage && (
               <div className="alert alert-success text-center" role="alert">
-                Vital sign added successfully!
+                Vital sign {editData ? "updated" : "added"} successfully!
               </div>
             )}
             <form onSubmit={handleSubmit}>
@@ -121,7 +156,7 @@ const VitalSignsForm = () => {
                 />
               </div>
               <button type="submit" className="btn btn-primary w-100">
-                Add Vital Sign
+                {editData ? "Update Vital Sign" : "Add Vital Sign"}
               </button>
             </form>
           </div>
@@ -152,6 +187,12 @@ const VitalSignsForm = () => {
                     <p className="card-text">Blood Pressure: {vital.bloodPressure}</p>
                     <p className="card-text">Heart Rate: {vital.heartRate}</p>
                     <p className="card-text">Temperature: {vital.temperature}°C</p>
+                    <button
+                      className="btn btn-secondary mt-2"
+                      onClick={() => handleEdit(vital)}
+                    >
+                      Edit
+                    </button>
                   </div>
                 </div>
               ))}

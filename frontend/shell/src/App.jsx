@@ -1,9 +1,9 @@
-import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import { AuthContext } from './contexts/AuthContext';
+import React, { useContext } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
+import { AuthContext } from "./contexts/AuthContext";
 
-const AuthApp = React.lazy(() => import('auth_mfe/AuthApp'));
-const VitalsApp = React.lazy(() => import('vitals_mfe/VitalsApp'));
+const AuthApp = React.lazy(() => import("auth_mfe/AuthApp"));
+const VitalsApp = React.lazy(() => import("vitals_mfe/VitalsApp"));
 
 const ProtectedRoute = ({ children }) => {
   const { auth } = useContext(AuthContext);
@@ -17,11 +17,12 @@ const App = () => {
     <Router>
       <nav>
         <ul>
-          <li><Link to="/auth">Authentication</Link></li>
+          {!auth.token && <li><Link to="/auth">Authentication</Link></li>}
+          {auth.token && <li><Link to="/">Home</Link></li>}
           {auth.token && <li><Link to="/vitals">Vital Signs</Link></li>}
           {auth.token && (
             <li>
-              <button onClick={logout} style={{ cursor: 'pointer' }}>
+              <button onClick={logout} style={{ cursor: "pointer" }}>
                 Logout
               </button>
             </li>
@@ -30,12 +31,20 @@ const App = () => {
       </nav>
       <React.Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          <Route path="/auth" element={<AuthApp />} />
+          <Route path="/auth" element={auth.token ? <Navigate to="/" /> : <AuthApp />} />
           <Route
             path="/vitals"
             element={
               <ProtectedRoute>
-                <VitalsApp token={auth.token} userId={auth.userId} />
+                <VitalsApp />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
               </ProtectedRoute>
             }
           />
@@ -44,5 +53,16 @@ const App = () => {
     </Router>
   );
 };
+
+const Home = () => (
+  <div className="container">
+    <h1>Welcome to the Vital Signs App</h1>
+    <p>Select an option from the navigation bar to proceed:</p>
+    <ul>
+      <li>View and manage vital signs.</li>
+      <li>Logout when you're done.</li>
+    </ul>
+  </div>
+);
 
 export default App;
